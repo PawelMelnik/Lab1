@@ -13,51 +13,55 @@ public class CoderRunner {
 
     private static void RunEncode(String inputFile, String outputFile, int min_length) throws IOException
     {
-       // MyReader readerInput = new MyReader(inputFile);
-        FileInputStream readerInput = new FileInputStream(inputFile);
-        FileOutputStream writerOutput = new FileOutputStream(outputFile);
-        //int a = readerInput.read();
-        //int b = readerInput.read();
-        if(min_length <= 0) {
-            throw new IOException("Wrong portion length. Expected: >=0. Found:" + min_length);
-        }
-
-        byte i = (byte)readerInput.read();
-        //int m = (int)i;
-        int k = 1;
-
-        while (i != -1)
+        try (FileInputStream readerInput = new FileInputStream(inputFile);
+             FileOutputStream writerOutput = new FileOutputStream(outputFile))
         {
-            byte j = (byte)readerInput.read();
-
-            while (j == i)
-            {
-                k++;
-                j = (byte)readerInput.read();
+            if(min_length <= 0) {
+                throw new IOException("Wrong portion length. Expected: >=0. Found:" + min_length);
             }
 
-            //k = k >= min_length ? k : 1;
-            if (k >= min_length)
+            byte i = (byte)readerInput.read();
+            int k = 1;
+
+            while (i != -1)
             {
-                writerOutput.write((byte)k);
-                writerOutput.flush();
-                writerOutput.write(i);
-                writerOutput.flush();
-            }
-            else
-            {
-                while (k > 0)
+                byte j = (byte)readerInput.read();
+
+                while (j == i)
                 {
-                    writerOutput.write((byte)1);
+                    k++;
+                    j = (byte)readerInput.read();
+                }
+
+                //k = k >= min_length ? k : 1;
+                if (k >= min_length)
+                {
+                    writerOutput.write((byte)k);
                     writerOutput.flush();
                     writerOutput.write(i);
                     writerOutput.flush();
-                    k--;
                 }
-            }
+                else
+                {
+                    while (k > 0)
+                    {
+                        writerOutput.write((byte)1);
+                        writerOutput.flush();
+                        writerOutput.write(i);
+                        writerOutput.flush();
+                        k--;
+                    }
+                }
 
-            i = j;
-            k = 1;
+                i = j;
+                k = 1;
+            }
+        }
+
+        catch (IOException e)
+        {
+            Log.report("Can't encode file");
+            throw new IOException();
         }
 
     }
@@ -65,24 +69,32 @@ public class CoderRunner {
 
     private static void RunDecode(String inputFile, String outputFile, int min_length) throws IOException
     {
-        FileInputStream readerInput = new FileInputStream(inputFile);
-        FileOutputStream writerOutput = new FileOutputStream(outputFile);
-
-        if(min_length <= 0) {
-            throw new IOException("Wrong portion length. Expected: >=0. Found:" + min_length);
-        }
-
-        byte k = 0;
-        while((k = (byte)readerInput.read()) != -1)
+        try (FileInputStream readerInput = new FileInputStream(inputFile);
+             FileOutputStream writerOutput = new FileOutputStream(outputFile))
         {
-            byte j = (byte)readerInput.read();
-            while( k > 0)
+            if(min_length <= 0) {
+                throw new IOException("Wrong portion length. Expected: >=0. Found:" + min_length);
+            }
+
+            byte k = 0;
+            while((k = (byte)readerInput.read()) != -1)
             {
-                writerOutput.write((char)j);
-                writerOutput.flush();
-                k--;
+                byte j = (byte)readerInput.read();
+                while( k > 0)
+                {
+                    writerOutput.write((char)j);
+                    writerOutput.flush();
+                    k--;
+                }
             }
         }
+
+        catch (IOException e)
+        {
+            Log.report("Can't decode file");
+            throw new IOException();
+        }
+
     }
 
     public void RunCoder() throws IOException
